@@ -1,0 +1,16 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.tmp
+*~
+
+# Vercel
+.vercel
+
+# Node (not used, but just in case)
+node_modules/
+npm-debug.log*
+
+# Never commit local backups or extra source data
+*_pre-*.xlsx
+Backups/

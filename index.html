@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food &amp; Sales Budget Variance — Executive Dashboard 2026</title>
+<style>
+  /* ===== Theme system: chrome recolors per palette; data-series stay validated ===== */
+  :root{
+    --brand:#1f3864; --brand-2:#264a80; --accent:#1aa79e; --accent-d:#14867e;
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#4a3aa7; --s5:#eda100;
+    --good:#0ca30c; --warn:#e8a33d; --bad:#d03b3b;
+    --surface:#ffffff; --plane:#eef1f6; --ink:#12233d; --ink-2:#55637a; --muted:#8a94a6;
+    --grid:#e8ecf2; --line:#dbe0e8; --ring:rgba(18,35,61,.08); --shadow:0 1px 3px rgba(18,35,61,.06),0 8px 22px rgba(18,35,61,.07);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  body[data-theme="royal"]{--brand:#26307a;--brand-2:#37429e;--accent:#4c6ef5;--accent-d:#3b5bdb}
+  body[data-theme="emerald"]{--brand:#0b5d4e;--brand-2:#0e7a63;--accent:#10b981;--accent-d:#0d9668}
+  body[data-theme="sunset"]{--brand:#7a2f4f;--brand-2:#a03a5f;--accent:#f97316;--accent-d:#ea6a0c}
+  body[data-theme="graphite"]{--brand:#232f3b;--brand-2:#33465a;--accent:#38bdf8;--accent-d:#0ea5e9}
+  body.dark{--surface:#171b23;--plane:#0d1015;--ink:#eef2f8;--ink-2:#aeb8c9;--muted:#7e8a9c;--grid:#262c37;--line:#2c3340;--ring:rgba(255,255,255,.10);--shadow:0 1px 3px rgba(0,0,0,.4),0 10px 26px rgba(0,0,0,.35)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--ink);-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+  .wrap{max-width:1220px;margin:0 auto;padding:0 20px}
+  a{color:inherit}
+  /* nav */
+  .topbar{position:sticky;top:0;z-index:40;background:linear-gradient(120deg,var(--brand),var(--brand-2));color:#fff;border-bottom:3px solid var(--accent);box-shadow:0 2px 12px rgba(0,0,0,.12)}
+  .topbar .wrap{display:flex;align-items:center;gap:14px;height:60px;max-width:none;padding:0 26px}
+  .logo{display:flex;flex-direction:column;line-height:1;flex:none}
+  .logo b{font-size:15px;font-weight:800;letter-spacing:.02em;color:#f0c24b}
+  .logo span{font-size:10px;color:#2ecc71;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-top:3px}
+  .byline{text-align:right;line-height:1.25;font-size:11px;font-weight:700;color:#2ecc71;flex:none;margin-left:4px}
+  .byline span{display:block;font-size:9px;font-weight:600;color:#5fe0a0;letter-spacing:.04em}
+  nav.tabs{display:flex;gap:5px;margin-left:6px;flex:1;justify-content:center;flex-wrap:nowrap}
+  nav.tabs button{position:relative;background:transparent;border:0;color:rgba(255,255,255,.82);font:inherit;font-size:13px;font-weight:700;letter-spacing:.01em;padding:8px 14px;border-radius:9px;cursor:pointer;white-space:nowrap;transition:color .18s,background .18s,transform .12s}
+  nav.tabs button::after{content:"";position:absolute;left:50%;bottom:5px;width:0;height:2px;border-radius:2px;background:#f0c24b;transform:translateX(-50%);transition:width .2s}
+  nav.tabs button:hover{background:rgba(255,255,255,.14);color:#fff;transform:translateY(-1px)}
+  nav.tabs button:hover::after{width:60%}
+  nav.tabs button.on{background:#fff;color:var(--brand);font-weight:800;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+  nav.tabs button.on::after{width:70%;background:var(--accent);bottom:4px}
+  .ctrls{display:flex;align-items:center;gap:8px}
+  .ctrls select,.ctrls button.mode{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;cursor:pointer}
+  .ctrls select option{color:#111}
+  .ctrls button.mode{width:34px;height:31px;font-size:14px}
+  .ctrls button.pdfbtn{background:var(--accent);border:1px solid var(--accent);color:#fff;font:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;padding:7px 13px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .ctrls button.pdfbtn:hover{background:var(--accent-d);border-color:var(--accent-d)}
+  /* page */
+  .page{display:none;padding:24px 0 60px;animation:fade .3s}
+  .page.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .phead{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+  .phead h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.01em}
+  .phead .badge{font-size:12px;color:var(--muted)}
+  h2.sec{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-d);font-weight:800;margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+  h2.sec::after{content:"";flex:1;height:1px;background:var(--line)}
+  /* kpi */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:13px}
+  .kpi{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:15px 15px 13px;box-shadow:var(--shadow)}
+  .kpi .lab{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .kpi .val{font-size:25px;font-weight:800;letter-spacing:-.02em;margin-top:6px;color:var(--brand)}
+  .kpi .val.accent{color:var(--accent-d)} .kpi .val.bad{color:var(--bad)} .kpi .val.good{color:var(--good)}
+  .kpi .note{font-size:11px;color:var(--ink-2);margin-top:3px}
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+  .card{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:15px;box-shadow:var(--shadow);position:relative;overflow:hidden;cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(18,35,61,.14)}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
+  .card .nm{font-weight:800;font-size:15px} .card .id{color:var(--muted);font-weight:600;font-size:12px}
+  .card .att{font-size:29px;font-weight:800;margin:7px 0 2px;letter-spacing:-.02em}
+  .card .attlab{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .bar{height:8px;border-radius:99px;background:var(--grid);margin:9px 0 4px;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:99px;background:var(--c)}
+  .mini{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-2);margin-top:7px}
+  .mini b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.03em;padding:2px 7px;border-radius:99px;text-transform:uppercase}
+  .pill.g{background:rgba(12,163,12,.13);color:var(--good)} .pill.w{background:rgba(232,163,61,.18);color:#a9741b} .pill.b{background:rgba(208,59,59,.13);color:var(--bad)}
+  /* panels & charts */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+  .panel{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:15px 17px;box-shadow:var(--shadow)}
+  .panel.full{grid-column:1/-1}
+  .panel h3{margin:0 0 2px;font-size:15px;font-weight:800}
+  .panel .cap{margin:0 0 12px;font-size:11.5px;color:var(--ink-2)}
+  .legend{display:flex;flex-wrap:wrap;gap:11px;margin-top:11px;font-size:11.5px;color:var(--ink-2)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:11px;height:11px;border-radius:3px;flex:none;box-shadow:0 0 0 2px var(--surface) inset}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .axis{fill:var(--muted);font-size:11px}.glab{fill:var(--ink-2);font-size:11px;font-variant-numeric:tabular-nums}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  /* table */
+  .tblwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--ring);border-radius:14px;box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:9px 12px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  thead th{background:var(--brand);color:#fff;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;font-weight:700}
+  tbody tr:nth-child(even){background:color-mix(in srgb,var(--accent) 5%,transparent)}
+  tbody tr.total{background:var(--brand);color:#fff;font-weight:800}
+  /* 3-month-average review flags */
+  .flag{display:inline-block;margin-left:5px;color:#e8890c;font-size:12px;cursor:help;font-weight:700;transform:translateY(-1px)}
+  td.flagged{background:rgba(232,137,12,.14);box-shadow:inset 3px 0 0 #e8890c}
+  .rbanner{display:flex;align-items:flex-start;gap:10px;background:rgba(232,137,12,.12);border:1px solid rgba(232,137,12,.4);border-left:5px solid #e8890c;border-radius:12px;padding:12px 15px;margin:14px 0 4px;font-size:13px;color:var(--ink)}
+  .rbanner .ic{font-size:17px;line-height:1.2}
+  .rbanner b{color:#b06806}
+  .rbanner.ok{background:rgba(12,163,12,.1);border-color:rgba(12,163,12,.35);border-left-color:var(--good)}
+  .rbanner.ok b{color:var(--good)}
+  .rbanner ul{margin:6px 0 0;padding-left:18px} .rbanner li{font-size:12px;color:var(--ink-2)}
+  td .dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px;vertical-align:middle}
+  .neg{color:var(--bad)}.pos{color:var(--good)}
+  /* insights */
+  .ins{background:var(--surface);border:1px solid var(--ring);border-left:4px solid var(--accent);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
+  .ins.warn{border-left-color:var(--bad)}.ins.good{border-left-color:var(--good)}
+  .ins h4{margin:0 0 5px;font-size:13px}.ins p{margin:0;font-size:12px;color:var(--ink-2);line-height:1.5}
+  footer{margin-top:30px;padding:16px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  #tip{position:fixed;pointer-events:none;background:var(--brand);color:#fff;padding:8px 11px;border-radius:8px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.3);opacity:0;transition:opacity .1s;z-index:99;white-space:nowrap}
+  #tip b{color:#fff;opacity:.85}
+  @media (max-width:920px){.kpis{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:repeat(2,1fr)}.grid2,.grid3{grid-template-columns:1fr}}
+  /* print-preview class mirrors @media print for on-screen verification */
+  body.pp{background:#fff;font-size:10.3px;width:1040px;margin:0 auto}
+  body.pp .no-print{display:none!important}
+  body.pp .topbar{position:static!important;box-shadow:none;margin-bottom:8px}
+  body.pp .topbar nav.tabs,body.pp .ctrls{display:none!important}
+  body.pp .byline{margin-left:auto}
+  body.pp .wrap{max-width:none;padding:0}
+  body.pp .page:not(.on){display:none!important}
+  body.pp .page.on{display:block!important;padding:0}
+  body.pp .phead h1{font-size:15px} body.pp h2.sec{margin:5px 0 3px}
+  body.pp .kpi .val{font-size:14px} body.pp .card .att{font-size:15px}
+  body.pp .panel .cap{display:none} body.pp .panel h3{font-size:11.5px}
+  body.pp .kpis,body.pp .cards{gap:5px} body.pp .grid2,body.pp .grid3{gap:6px}
+  body.pp .panel svg{max-height:96px} body.pp .card,body.pp .kpi,body.pp .ins{break-inside:avoid}
+  body.pp .rbanner{padding:6px 10px} body.pp table{font-size:9px} body.pp th,body.pp td{padding:2.5px 6px}
+  /* zoom-to-fit ONLY the content-heavy store tabs so each lands on ~2 pages, full-width */
+  body.pp #pg-0008,body.pp #pg-0025,body.pp #pg-0028,body.pp #pg-0062{zoom:.66}
+  body.pp footer{display:none}
+  @media print{
+    /* force browsers to PRINT background fills/bars/bands (else colors wash out) */
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+    /* darker greys so small text is crisp/readable on paper (acrylic look) */
+    :root{--ink:#0d1b30;--ink-2:#2f3c52;--muted:#4a5568;--line:#c3ccd8;--grid:#dfe4ec}
+    @page{size:A4 landscape;margin:4mm}
+    html,body{background:#fff;font-size:9.5px;-webkit-font-smoothing:auto}
+    /* KEEP the branded header slide on the printout (static, full-bleed band) */
+    .topbar{display:block!important;position:static!important;box-shadow:none;
+      border-bottom:2px solid var(--accent);margin:0 0 6px;border-radius:0}
+    .topbar .wrap{height:auto;min-height:36px;padding:6px 11px;gap:9px}
+    nav.tabs,.ctrls{display:none!important}
+    .logo b{font-size:14px}.logo span{font-size:9px}
+    .byline{font-size:10px;margin-left:auto}
+    .no-print{display:none!important}
+    .wrap{max-width:none;padding:0}
+    .page{padding:0!important}
+    .page:not(.on){display:none!important}
+    .page.on{display:block!important;padding:0}
+    .phead{margin-bottom:2px}.phead h1{font-size:15px}
+    .phead .badge{color:#4a5568;font-size:10px}
+    /* keep a heading with the block that follows it; never orphan a section title */
+    h2.sec{margin:5px 0 3px;font-size:8.6px;break-after:avoid;page-break-after:avoid}
+    .rbanner{padding:5px 10px}.rbanner li{font-size:9.6px}
+    .kpi{padding:5px 8px}.kpi .val{font-size:14px}.kpi .lab{font-size:8.4px}.kpi .note{font-size:8.8px}
+    .card{padding:7px 9px}.card .att{font-size:15px}.card .mini{font-size:9.2px}.card .nm{font-size:12.5px}
+    .kpis,.cards{gap:5px}.grid2,.grid3{gap:6px}
+    .panel{padding:6px 9px}.panel h3{font-size:11.5px;margin:0 0 1px}.panel .cap{display:none}
+    .panel svg{max-height:96px}
+    /* charts + small cards stay whole; big TABLES may flow across pages by ROW
+       (whole-table 'avoid' forces the table to the next page = wasted blank gap) */
+    .kpis,.cards,.card,.kpi,.ins,.panel,.rbanner{break-inside:avoid;page-break-inside:avoid}
+    tr{break-inside:avoid;page-break-inside:avoid}
+    thead{display:table-header-group}
+    .card,.kpi,.ins,.tblwrap,.panel{box-shadow:none;border-color:#c3ccd8}
+    /* sharpen coloured accents so they read as vivid, not pastel, on paper */
+    .kpi .val,.card .att,.phead h1{-webkit-text-stroke:.01em currentColor}
+    table{font-size:9px}
+    th,td{padding:2.5px 6px}
+    thead th{position:static}
+    tbody tr:nth-child(even){background:var(--plane)}
+    .legend{margin-top:3px;gap:8px;font-size:9px}
+    /* zoom-to-fit ONLY the content-heavy store tabs (6 charts + 5 tables each) so
+       each prints on ~2 full-width pages; Overview/Trends/Data already fit, left at 1:1 */
+    #pg-0008,#pg-0025,#pg-0028,#pg-0062{zoom:.66}
+    footer{display:none}
+  }
+</style>
+</head>
+<body data-theme="teal">
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><b>Sugarland Petroleum</b><span>Food &amp; Sales Budget Variance</span></div>
+    <nav class="tabs" id="tabs"></nav>
+    <div class="byline">Prepared by Furqan Ali<span>Senior AI Engineer</span></div>
+    <div class="ctrls no-print">
+      <select id="month" title="Focus month"></select>
+      <select id="theme" title="Color theme">
+        <option value="teal">Teal · Navy</option><option value="royal">Royal Blue</option>
+        <option value="emerald">Emerald</option><option value="sunset">Sunset</option><option value="graphite">Graphite</option>
+      </select>
+      <button class="mode" id="mode" title="Light / Dark">◐</button>
+      <button id="print" class="pdfbtn" title="Print / Save as PDF (current tab)">⎙ PDF</button>
+      <button class="mode" id="csv" title="Download data (CSV)">⤓</button>
+      <a class="mode" id="xlsx" title="Open Excel report" href="../02_Excel_Report/01 - Food and Sales Budget Variance Report.xlsx" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">▦</a>
+    </div>
+  </div>
+</div>
+<div class="wrap" id="app"></div>
+<div id="tip"></div>
+
+<script>
+/* ================= DATA ================= */
+const STORES=[
+ {name:"Mesa",id:"0008",c:"var(--s1)",hex:"#2a78d6"},
+ {name:"Polo",id:"0025",c:"var(--s2)",hex:"#eb6834"},
+ {name:"Woodridge",id:"0028",c:"var(--s3)",hex:"#1baf7a"},
+ {name:"Dilley",id:"0062",c:"var(--s4)",hex:"#4a3aa7"}
+];
+const MD={"0008": [{"m": "Jan", "gp_before": 0.675, "gp_after": 0.6492, "inir": 0.5232, "shrink": -0.0047, "sos": 7.04, "cstore": 124352, "kitchen": 21386, "fountain": 2410, "actual": 148148, "budget": 211000, "customers": 27412, "disc_pct": 0.0258, "disc_d": 1123.46, "wastage_d": 1829.74, "sampling_d": 670.28, "spoilage_d": 0, "logo_d": 93.98, "shrink_d": -100.65, "crind": 3251, "drmop": 5929, "avgcust": 588, "avgspc": 7.99, "hotgrab": 3971.38, "coldgrab": 1555.05, "bakery": 198.71, "mtofood": 8395.57, "mtocoffee": 1190.7, "delivery": 6074.73, "catering": 0, "midax": 0}, {"m": "Feb", "gp_before": 0.6684, "gp_after": 0.6375, "inir": 0.5745, "shrink": 0.0467, "sos": 7.28, "cstore": 124161, "kitchen": 22429, "fountain": 2370, "actual": 148960, "budget": 211000, "customers": 27718, "disc_pct": 0.0309, "disc_d": 1137.6, "wastage_d": 1803.12, "sampling_d": 537.34, "spoilage_d": 0, "logo_d": 119.2, "shrink_d": 1046.65, "crind": 3539, "drmop": 6380, "avgcust": 636, "avgspc": 8.24, "hotgrab": 3696.72, "coldgrab": 1637.34, "bakery": 267.94, "mtofood": 8295.91, "mtocoffee": 1238.5, "delivery": 7292.34, "catering": 0, "midax": 0}, {"m": "Mar", "gp_before": 0.6723, "gp_after": 0.6418, "inir": 0.5731, "shrink": 0.0435, "sos": 6.18, "cstore": 152697, "kitchen": 28231, "fountain": 3084, "actual": 184012, "budget": 211000, "customers": 35272, "disc_pct": 0.0305, "disc_d": 1619.36, "wastage_d": 2243.04, "sampling_d": 732.45, "spoilage_d": 0, "logo_d": 193.32, "shrink_d": 1229.37, "crind": 4659, "drmop": 8054, "avgcust": 728, "avgspc": 8.02, "hotgrab": 5078.04, "coldgrab": 2121.93, "bakery": 459.8, "mtofood": 11396.7, "mtocoffee": 1416.98, "delivery": 7698.22, "catering": 0, "midax": 0}, {"m": "Apr", "gp_before": 0.6652, "gp_after": 0.6412, "inir": 0.6027, "shrink": 0.0633, "sos": 7.64, "cstore": 141512, "kitchen": 28515, "fountain": 2959, "actual": 172987, "budget": 211000, "customers": 35412, "disc_pct": 0.024, "disc_d": 1481.65, "wastage_d": 1895.97, "sampling_d": 851.11, "spoilage_d": 0, "logo_d": 155.17, "shrink_d": 1804.41, "crind": 4707, "drmop": 8042, "avgcust": 755, "avgspc": 7.5, "hotgrab": 4646.9, "coldgrab": 1756.26, "bakery": 449.38, "mtofood": 10671.87, "mtocoffee": 1520.01, "delivery": 9470.91, "catering": 0, "midax": 0}, {"m": "May", "gp_before": 0.6631, "gp_after": 0.6287, "inir": 0.5543, "shrink": 0.0273, "sos": 7.82, "cstore": 151524, "kitchen": 26629, "fountain": 3153, "actual": 181306, "budget": 211000, "customers": 38379, "disc_pct": 0.0344, "disc_d": 1660.64, "wastage_d": 1785.94, "sampling_d": 816.28, "spoilage_d": 0, "logo_d": 106.1, "shrink_d": 727.16, "crind": 5278, "drmop": 8932, "avgcust": 780, "avgspc": 7.37, "hotgrab": 4112.7, "coldgrab": 1925.78, "bakery": 515.8, "mtofood": 10241.53, "mtocoffee": 1738.59, "delivery": 8094.11, "catering": 0, "midax": 0}, {"m": "Jun", "gp_before": 0.6611, "gp_after": 0.636, "inir": 0.569, "shrink": 0.0389, "sos": 7.55, "cstore": 146542, "kitchen": 24921, "fountain": 3486, "actual": 174949, "budget": 211000, "customers": 34209, "disc_pct": 0.0251, "disc_d": 1259.08, "wastage_d": 1821, "sampling_d": 678.32, "spoilage_d": 0, "logo_d": 141.06, "shrink_d": 970.66, "crind": 4196, "drmop": 8014, "avgcust": 733, "avgspc": 7.79, "hotgrab": 3870.86, "coldgrab": 1717.52, "bakery": 591.99, "mtofood": 9453.8, "mtocoffee": 1571.49, "delivery": 7715.48, "catering": 0, "midax": 0}, {"m": "Jul", "gp_before": 0.6511, "gp_after": 0.6284, "inir": 0.5689, "shrink": 0.0588, "sos": 7.58, "cstore": 145683, "kitchen": 25842, "fountain": 3861, "actual": 175387, "budget": 211000, "customers": 34708, "disc_pct": 0.0227, "disc_d": 1077.79, "wastage_d": 1995.9, "sampling_d": 921.91, "spoilage_d": 0, "logo_d": 140.48, "shrink_d": 1520.67, "crind": 4461, "drmop": 8389, "avgcust": 705, "avgspc": 7.85, "hotgrab": 4294.37, "coldgrab": 1565.75, "bakery": 516.74, "mtofood": 9632.9, "mtocoffee": 1492.73, "delivery": 8339.89, "catering": 0, "midax": 0}, {"m": "Aug", "gp_before": 0.6433, "gp_after": 0.6187, "inir": 0.5733, "shrink": 0.0866, "sos": 7.38, "cstore": 146971, "kitchen": 22652, "fountain": 3997, "actual": 173620, "budget": 211000, "customers": 35768, "disc_pct": 0.0245, "disc_d": 1087.15, "wastage_d": 1831.36, "sampling_d": 925.85, "spoilage_d": 137.6, "logo_d": 94.98, "shrink_d": 1960.89, "crind": 4832, "drmop": 8850, "avgcust": 712, "avgspc": 7.68, "hotgrab": 4384.47, "coldgrab": 1641.73, "bakery": 491.25, "mtofood": 9458.69, "mtocoffee": 1402.43, "delivery": 5272.48, "catering": 0, "midax": 0}], "0025": [{"m": "Jan", "gp_before": 0.6699, "gp_after": 0.6529, "inir": 0.3849, "shrink": -0.2199, "sos": 7.8, "cstore": 76356, "kitchen": 20855, "fountain": 2514, "actual": 99725, "budget": 233500, "customers": 14020, "disc_pct": 0.017, "disc_d": 585, "wastage_d": 760.14, "sampling_d": 0, "spoilage_d": 0, "logo_d": 242.99, "shrink_d": -4586.06, "crind": 4523, "drmop": 8370, "avgcust": 36, "avgspc": 86.26, "hotgrab": 6836.87, "coldgrab": 486.87, "bakery": 177.12, "mtofood": 11824.25, "mtocoffee": 547.58, "delivery": 842.14, "catering": 140.37, "midax": 0}, {"m": "Feb", "gp_before": 0.6615, "gp_after": 0.6394, "inir": 0.5494, "shrink": -0.021, "sos": 8.45, "cstore": 78892, "kitchen": 20413, "fountain": 2485, "actual": 101790, "budget": 233500, "customers": 15561, "disc_pct": 0.0221, "disc_d": 1031.23, "wastage_d": 827.33, "sampling_d": 327.92, "spoilage_d": 0, "logo_d": 253.31, "shrink_d": -428.63, "crind": 4830, "drmop": 9153, "avgcust": 56, "avgspc": 62.93, "hotgrab": 7059.28, "coldgrab": 408.69, "bakery": 223.8, "mtofood": 11391.14, "mtocoffee": 610.14, "delivery": 693.13, "catering": 27.09, "midax": 0}, {"m": "Mar", "gp_before": 0.6624, "gp_after": 0.6407, "inir": 0.4638, "shrink": -0.1079, "sos": 7.6, "cstore": 88964, "kitchen": 23694, "fountain": 3102, "actual": 115759, "budget": 233500, "customers": 15930, "disc_pct": 0.0217, "disc_d": 1075.28, "wastage_d": 821.69, "sampling_d": 514.41, "spoilage_d": 0, "logo_d": 297.87, "shrink_d": -2557.44, "crind": 5296, "drmop": 9373, "avgcust": 41, "avgspc": 89.34, "hotgrab": 8886.96, "coldgrab": 576.69, "bakery": 282.99, "mtofood": 13006.22, "mtocoffee": 487.73, "delivery": 441.25, "catering": 11.85, "midax": 0}, {"m": "Apr", "gp_before": 0.6606, "gp_after": 0.6537, "inir": 0.4043, "shrink": -0.1947, "sos": 7.86, "cstore": 86627, "kitchen": 23630, "fountain": 2861, "actual": 113118, "budget": 233500, "customers": 17050, "disc_pct": 0.0069, "disc_d": 631.17, "wastage_d": 623.91, "sampling_d": 429.08, "spoilage_d": 0, "logo_d": 240.62, "shrink_d": -4599.59, "crind": 5513, "drmop": 10262, "avgcust": 42, "avgspc": 86.48, "hotgrab": 8601.66, "coldgrab": 617.68, "bakery": 299.46, "mtofood": 12868.58, "mtocoffee": 647.67, "delivery": 587.98, "catering": 6.48, "midax": 0}, {"m": "May", "gp_before": 0.657, "gp_after": 0.6388, "inir": 0.4907, "shrink": -0.0938, "sos": 8.72, "cstore": 100074, "kitchen": 24646, "fountain": 3658, "actual": 128378, "budget": 233500, "customers": 18707, "disc_pct": 0.0182, "disc_d": 808.42, "wastage_d": 693.7, "sampling_d": 379.1, "spoilage_d": 0, "logo_d": 266.04, "shrink_d": -2311.26, "crind": 5757, "drmop": 11007, "avgcust": 63, "avgspc": 64.19, "hotgrab": 8437.06, "coldgrab": 518.09, "bakery": 291.52, "mtofood": 13847.07, "mtocoffee": 745.81, "delivery": 806.64, "catering": 0, "midax": 0}, {"m": "Jun", "gp_before": 0.659, "gp_after": 0.6399, "inir": 0.419, "shrink": -0.1443, "sos": 8.5, "cstore": 96422, "kitchen": 27812, "fountain": 3765, "actual": 128000, "budget": 233500, "customers": 18176, "disc_pct": 0.0191, "disc_d": 751.34, "wastage_d": 1459.64, "sampling_d": 378.46, "spoilage_d": 0, "logo_d": 292.33, "shrink_d": -4013.35, "crind": 5187, "drmop": 10729, "avgcust": 75, "avgspc": 54.97, "hotgrab": 9424.08, "coldgrab": 749.26, "bakery": 287.53, "mtofood": 15607.07, "mtocoffee": 930.52, "delivery": 814.04, "catering": 0, "midax": 0}, {"m": "Jul", "gp_before": 0.6591, "gp_after": 0.6404, "inir": 0.3999, "shrink": -0.1633, "sos": 8.49, "cstore": 96374, "kitchen": 26027, "fountain": 3472, "actual": 125874, "budget": 233500, "customers": 18627, "disc_pct": 0.0187, "disc_d": 733.63, "wastage_d": 1315.24, "sampling_d": 453.15, "spoilage_d": 0, "logo_d": 242.2, "shrink_d": -4248.97, "crind": 5829, "drmop": 11197, "avgcust": 52, "avgspc": 76.45, "hotgrab": 9699.42, "coldgrab": 629.28, "bakery": 261.69, "mtofood": 13297.14, "mtocoffee": 997.25, "delivery": 1136.56, "catering": 5.95, "midax": 0}, {"m": "Aug", "gp_before": 0.6645, "gp_after": 0.6454, "inir": 0.4824, "shrink": -0.0579, "sos": 9.0, "cstore": 103374, "kitchen": 26190, "fountain": 3787, "actual": 133351, "budget": 233500, "customers": 19468, "disc_pct": 0.0191, "disc_d": 751.31, "wastage_d": 1685.55, "sampling_d": 817.38, "spoilage_d": 0, "logo_d": 247.52, "shrink_d": -1517.5, "crind": 5818, "drmop": 11503, "avgcust": 69, "avgspc": 60.35, "hotgrab": 9881.2, "coldgrab": 638.71, "bakery": 282.05, "mtofood": 13310.31, "mtocoffee": 946.73, "delivery": 1130.52, "catering": 0, "midax": 0}], "0028": [{"m": "Jan", "gp_before": 0.6772, "gp_after": 0.6522, "inir": 0.4073, "shrink": -0.1982, "sos": 6.46, "cstore": 141127, "kitchen": 20958, "fountain": 5243, "actual": 167328, "budget": 233000, "customers": 35837, "disc_pct": 0.025, "disc_d": 1206.91, "wastage_d": 618.7, "sampling_d": 250, "spoilage_d": 0, "logo_d": 109.88, "shrink_d": -4154.08, "crind": 7401, "drmop": 17745, "avgcust": 345, "avgspc": 15.16, "hotgrab": 7413.09, "coldgrab": 1321.95, "bakery": 708.43, "mtofood": 6723.65, "mtocoffee": 1824.76, "delivery": 2607.3, "catering": 176.1, "midax": 182.92}, {"m": "Feb", "gp_before": 0.6762, "gp_after": 0.6423, "inir": 0.4898, "shrink": -0.0568, "sos": 6.45, "cstore": 139490, "kitchen": 24699, "fountain": 5547, "actual": 169736, "budget": 233000, "customers": 36215, "disc_pct": 0.0339, "disc_d": 1911.63, "wastage_d": 1851.32, "sampling_d": 396.39, "spoilage_d": 0, "logo_d": 115.64, "shrink_d": -1403.31, "crind": 7418, "drmop": 18029, "avgcust": 385, "avgspc": 15.25, "hotgrab": 8322.92, "coldgrab": 1381.09, "bakery": 686.81, "mtofood": 6732.07, "mtocoffee": 2252.09, "delivery": 2182.81, "catering": 1205.5, "midax": 1936.12}, {"m": "Mar", "gp_before": 0.6713, "gp_after": 0.6458, "inir": 0.5038, "shrink": -0.0589, "sos": 5.24, "cstore": 162478, "kitchen": 27360, "fountain": 6266, "actual": 196104, "budget": 233000, "customers": 43653, "disc_pct": 0.0255, "disc_d": 2114.17, "wastage_d": 1200, "sampling_d": 955, "spoilage_d": 0, "logo_d": 117.62, "shrink_d": -1612.48, "crind": 8947, "drmop": 21203, "avgcust": 436, "avgspc": 14.06, "hotgrab": 9166.77, "coldgrab": 1907.3, "bakery": 978.88, "mtofood": 8304.92, "mtocoffee": 2515.61, "delivery": 2810.15, "catering": 1676.2, "midax": 0}, {"m": "Apr", "gp_before": 0.6653, "gp_after": 0.6327, "inir": 0.5078, "shrink": -0.0271, "sos": 5.32, "cstore": 157600, "kitchen": 26783, "fountain": 5831, "actual": 190214, "budget": 233000, "customers": 43324, "disc_pct": 0.0326, "disc_d": 2553.67, "wastage_d": 1203, "sampling_d": 1255.45, "spoilage_d": 0, "logo_d": 159.96, "shrink_d": -726.73, "crind": 8991, "drmop": 21565, "avgcust": 426, "avgspc": 14.44, "hotgrab": 8793.23, "coldgrab": 1950.09, "bakery": 935.96, "mtofood": 9009.6, "mtocoffee": 2477.87, "delivery": 3612.82, "catering": 3, "midax": 0}, {"m": "May", "gp_before": 0.6247, "gp_after": 0.5826, "inir": 0.474, "shrink": 0.0169, "sos": 5.76, "cstore": 168818, "kitchen": 26248, "fountain": 6271, "actual": 201337, "budget": 233000, "customers": 45289, "disc_pct": 0.0421, "disc_d": 2816.75, "wastage_d": 1887.53, "sampling_d": 1284.42, "spoilage_d": 0, "logo_d": 123.19, "shrink_d": 444.62, "crind": 8988, "drmop": 21627, "avgcust": 473, "avgspc": 13.29, "hotgrab": 8548.1, "coldgrab": 1999.13, "bakery": 1031.75, "mtofood": 8741.39, "mtocoffee": 2853.53, "delivery": 2809.44, "catering": 264.5, "midax": 0}, {"m": "Jun", "gp_before": 0.6612, "gp_after": 0.6121, "inir": 0.478, "shrink": 0.0004, "sos": 5.95, "cstore": 164054, "kitchen": 23973, "fountain": 5918, "actual": 193945, "budget": 233000, "customers": 42683, "disc_pct": 0.0491, "disc_d": 2925.16, "wastage_d": 1833.28, "sampling_d": 816.95, "spoilage_d": 449.81, "logo_d": 123.99, "shrink_d": 9.25, "crind": 7188, "drmop": 19131, "avgcust": 545, "avgspc": 11.49, "hotgrab": 7363.4, "coldgrab": 1694.5, "bakery": 653.85, "mtofood": 8891.36, "mtocoffee": 2808.46, "delivery": 2537.79, "catering": 23.64, "midax": 0}, {"m": "Jul", "gp_before": 0.6476, "gp_after": 0.6044, "inir": 0.4342, "shrink": -0.0352, "sos": 5.97, "cstore": 164426, "kitchen": 24614, "fountain": 6335, "actual": 195376, "budget": 233000, "customers": 43679, "disc_pct": 0.0432, "disc_d": 2199.32, "wastage_d": 1879.4, "sampling_d": 1345.16, "spoilage_d": 0, "logo_d": 97.96, "shrink_d": -866.83, "crind": 7884, "drmop": 19062, "avgcust": 540, "avgspc": 11.3, "hotgrab": 7870.27, "coldgrab": 1880.21, "bakery": 545.72, "mtofood": 8313.04, "mtocoffee": 2579.48, "delivery": 3425.58, "catering": 0, "midax": 0}, {"m": "Aug", "gp_before": 0.6482, "gp_after": 0.5993, "inir": 0.5377, "shrink": 0.0768, "sos": 5.5, "cstore": 167643, "kitchen": 23753, "fountain": 7095, "actual": 198491, "budget": 233000, "customers": 44777, "disc_pct": 0.049, "disc_d": 2614.19, "wastage_d": 1900, "sampling_d": 1283.76, "spoilage_d": 0, "logo_d": 102.73, "shrink_d": 1824.23, "crind": 8312, "drmop": 21313, "avgcust": 489, "avgspc": 12.63, "hotgrab": 9369.41, "coldgrab": 1624.39, "bakery": 537.35, "mtofood": 7349.92, "mtocoffee": 2197.63, "delivery": 2647.32, "catering": 26.96, "midax": 0}], "0062": [{"m": "Jan", "gp_before": 0.6483, "gp_after": 0.6257, "inir": 0.4881, "shrink": -0.0663, "sos": 9.11, "cstore": 130836, "kitchen": 25206, "fountain": 6340, "actual": 162381, "budget": 246000, "customers": 24040, "disc_pct": 0.0226, "disc_d": 1357.5, "wastage_d": 1661.54, "sampling_d": 636.49, "spoilage_d": 0, "logo_d": -500.56, "shrink_d": -1670.81, "crind": 4894, "drmop": 7154, "avgcust": 387, "avgspc": 13.01, "hotgrab": 15474.12, "coldgrab": 728.18, "bakery": 229.88, "mtofood": 8127.49, "mtocoffee": 645.88, "delivery": 0, "catering": 0, "midax": 0}, {"m": "Feb", "gp_before": 0.645, "gp_after": 0.6118, "inir": 0.5165, "shrink": -0.0008, "sos": 8.5, "cstore": 133345, "kitchen": 28552, "fountain": 6316, "actual": 168212, "budget": 246000, "customers": 24273, "disc_pct": 0.0332, "disc_d": 2155.74, "wastage_d": 2243.19, "sampling_d": 285, "spoilage_d": 0, "logo_d": 170.72, "shrink_d": -22.07, "crind": 4739, "drmop": 6990, "avgcust": 448, "avgspc": 12.91, "hotgrab": 18331.28, "coldgrab": 855.23, "bakery": 245.75, "mtofood": 8156.27, "mtocoffee": 963.15, "delivery": 0, "catering": 100, "midax": 0}, {"m": "Mar", "gp_before": 0.6435, "gp_after": 0.6033, "inir": 0.5318, "shrink": 0.0135, "sos": 7.85, "cstore": 157878, "kitchen": 33763, "fountain": 7853, "actual": 199493, "budget": 246000, "customers": 28918, "disc_pct": 0.0402, "disc_d": 2187.85, "wastage_d": 2181.83, "sampling_d": 450, "spoilage_d": 0, "logo_d": 237.08, "shrink_d": 454.88, "crind": 5910, "drmop": 8184, "avgcust": 478, "avgspc": 12.93, "hotgrab": 20666.38, "coldgrab": 998.38, "bakery": 322.33, "mtofood": 10501.9, "mtocoffee": 1273.7, "delivery": 0, "catering": 0, "midax": 0}, {"m": "Apr", "gp_before": 0.6498, "gp_after": 0.6087, "inir": 0.4918, "shrink": -0.0604, "sos": 7.85, "cstore": 149974, "kitchen": 35924, "fountain": 7520, "actual": 193419, "budget": 246000, "customers": 29105, "disc_pct": 0.0411, "disc_d": 2837.07, "wastage_d": 900, "sampling_d": 885, "spoilage_d": 0, "logo_d": 244.82, "shrink_d": -2169.75, "crind": 5923, "drmop": 8454, "avgcust": 491, "avgspc": 12.62, "hotgrab": 21126.07, "coldgrab": 852.74, "bakery": 243.05, "mtofood": 12605.6, "mtocoffee": 1096.99, "delivery": 0, "catering": 0, "midax": 0}, {"m": "May", "gp_before": 0.6728, "gp_after": 0.63, "inir": 0.5806, "shrink": 0.0141, "sos": 7.85, "cstore": 181470, "kitchen": 41349, "fountain": 7971, "actual": 230790, "budget": 246000, "customers": 33255, "disc_pct": 0.0428, "disc_d": 2939.29, "wastage_d": 1500, "sampling_d": 850, "spoilage_d": 0, "logo_d": 277.05, "shrink_d": 584.42, "crind": 6925, "drmop": 10012, "avgcust": 526, "avgspc": 13.65, "hotgrab": 23682.75, "coldgrab": 1206, "bakery": 254.72, "mtofood": 14500.33, "mtocoffee": 1705.08, "delivery": 0, "catering": 0, "midax": 0}, {"m": "Jun", "gp_before": 0.6488, "gp_after": 0.6073, "inir": 0.485, "shrink": -0.0052, "sos": 10.35, "cstore": 181309, "kitchen": 41046, "fountain": 7393, "actual": 229748, "budget": 246000, "customers": 31149, "disc_pct": 0.0415, "disc_d": 3144.43, "wastage_d": 4000.35, "sampling_d": 600, "spoilage_d": 0, "logo_d": 207.69, "shrink_d": -211.9, "crind": 6182, "drmop": 9471, "avgcust": 517, "avgspc": 14.35, "hotgrab": 22629.96, "coldgrab": 1181.43, "bakery": 256.41, "mtofood": 15113.53, "mtocoffee": 1864.75, "delivery": 0, "catering": 0, "midax": 0}, {"m": "Jul", "gp_before": 0.652, "gp_after": 0.6064, "inir": 0.4966, "shrink": -0.0795, "sos": 9.85, "cstore": 193208, "kitchen": 38788, "fountain": 8794, "actual": 240790, "budget": 246000, "customers": 34234, "disc_pct": 0.0456, "disc_d": 2541.18, "wastage_d": 550.04, "sampling_d": 400, "spoilage_d": 0, "logo_d": 225.56, "shrink_d": -3083.31, "crind": 7111, "drmop": 10504, "avgcust": 536, "avgspc": 13.96, "hotgrab": 22158.33, "coldgrab": 1019.94, "bakery": 235.32, "mtofood": 13865.55, "mtocoffee": 1508.72, "delivery": 0, "catering": 0, "midax": 0}, {"m": "Aug", "gp_before": 0.6521, "gp_after": 0.6067, "inir": 0.5035, "shrink": -0.0483, "sos": 9.85, "cstore": 206841, "kitchen": 43876, "fountain": 9375, "actual": 260091, "budget": 246000, "customers": 35174, "disc_pct": 0.0454, "disc_d": 3375.48, "wastage_d": 1449.7, "sampling_d": 715, "spoilage_d": 0, "logo_d": 243.29, "shrink_d": -2117.82, "crind": 7027, "drmop": 11015, "avgcust": 553, "avgspc": 14.63, "hotgrab": 25489.33, "coldgrab": 1147, "bakery": 322.69, "mtofood": 15493.71, "mtocoffee": 1423.78, "delivery": 0, "catering": 0, "midax": 0}]};            // per-store monthly rows
+const EX={"0008": {"inv": [{"dept": "Cig", "targeted": 30000, "ending": 36623, "var": -6623}, {"dept": "OT", "targeted": 12000, "ending": 18643, "var": -6643}, {"dept": "Beer", "targeted": 20000, "ending": 21603, "var": -1603}, {"dept": "Soda", "targeted": 25000, "ending": 38715, "var": -13715}, {"dept": "Candy", "targeted": 11000, "ending": 14061, "var": -3061}, {"dept": "Grocery", "targeted": 17000, "ending": 23283, "var": -6283}, {"dept": "GM", "targeted": 30000, "ending": 35625, "var": -5625}, {"dept": "Fountain", "targeted": 4500, "ending": 4545, "var": -45}, {"dept": "LSM (HOB)", "targeted": 8500, "ending": 14580, "var": -6080}, {"dept": "Carwash", "targeted": 0, "ending": 0, "var": 0}, {"dept": "Grand Total", "targeted": 158000, "ending": 207678, "var": -49678}], "override": [67, 7, 4, 10, 22, 54, 71, 25]}, "0025": {"inv": [{"dept": "Cig", "targeted": 20000, "ending": 28861, "var": -8861}, {"dept": "OT", "targeted": 13000, "ending": 37450, "var": -24450}, {"dept": "Beer", "targeted": 20000, "ending": 38077, "var": -18077}, {"dept": "Soda", "targeted": 18000, "ending": 36560, "var": -18560}, {"dept": "Candy", "targeted": 7000, "ending": 14715, "var": -7715}, {"dept": "Grocery", "targeted": 13000, "ending": 27878, "var": -14878}, {"dept": "GM", "targeted": 17000, "ending": 83325, "var": -66325}, {"dept": "Fountain", "targeted": 3500, "ending": 3878, "var": -378}, {"dept": "LSM (HOB)", "targeted": 3000, "ending": 16520, "var": -13520}, {"dept": "Carwash", "targeted": 4000, "ending": 5163, "var": -1163}, {"dept": "Grand Total", "targeted": 118500, "ending": 292427, "var": -173927}], "override": [42, 22, 38, 24, 64, 75, 76, 70]}, "0028": {"inv": [{"dept": "Cig", "targeted": 20000, "ending": 39477, "var": -19477}, {"dept": "OT", "targeted": 25000, "ending": 29416, "var": -4416}, {"dept": "Beer", "targeted": 32000, "ending": 27205, "var": 4795}, {"dept": "Soda", "targeted": 27000, "ending": 42998, "var": -15998}, {"dept": "Candy", "targeted": 12000, "ending": 13452, "var": -1452}, {"dept": "Grocery", "targeted": 22000, "ending": 36011, "var": -14011}, {"dept": "GM", "targeted": 35000, "ending": 46399, "var": -11399}, {"dept": "Fountain", "targeted": 5000, "ending": 4924, "var": 76}, {"dept": "LSM (HOB)", "targeted": 8500, "ending": 11511, "var": -3011}, {"dept": "Carwash", "targeted": 0, "ending": 0, "var": 0}, {"dept": "Grand Total", "targeted": 186500, "ending": 251392, "var": -64892}], "override": [41, 16, 53, 39, 152, 126, 203, 144]}, "0062": {"inv": [{"dept": "Cig", "targeted": 24000, "ending": 25243, "var": -1243}, {"dept": "OT", "targeted": 22000, "ending": 35145, "var": -13145}, {"dept": "Beer", "targeted": 20000, "ending": 27480, "var": -7480}, {"dept": "Soda", "targeted": 25000, "ending": 61594, "var": -36594}, {"dept": "Candy", "targeted": 13000, "ending": 24550, "var": -11550}, {"dept": "Grocery", "targeted": 35000, "ending": 62985, "var": -27985}, {"dept": "GM", "targeted": 120000, "ending": 120134, "var": -134}, {"dept": "Fountain", "targeted": 4500, "ending": 7528, "var": -3028}, {"dept": "LSM (HOB)", "targeted": 8500, "ending": 15928, "var": -7428}, {"dept": "Carwash", "targeted": 0, "ending": 0, "var": 0}, {"dept": "Grand Total", "targeted": 272000, "ending": 380587, "var": -108587}], "override": [151, 125, 82, 87, 99, 270, 248, 256]}};              // per-store ending-inventory + price-override
+const FLAGS={};           // {sid:{metric:note}} pending 3-month-avg review flags (cleared on approval)
+const MIX=[{label:"Hot Grab",value:290163},{label:"MTO Food",value:299516},{label:"Delivery",value:79993},{label:"MTO Coffee & Bev",value:41506},{label:"Cold Grab",value:35242},{label:"Bakery",value:12153},{label:"Catering",value:3641},{label:"Midax",value:2119}];
+const MONS=["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
+let CUR=MONS.length-1;                 // focus month index (default = latest filled month)
+const LAST=MONS[MONS.length-1];        // last filled month name (for "Jan–<last>" labels)
+// kitchen product-mix categories (key -> label) + a categorical palette
+const KCATS=[["hotgrab","Hot Grab"],["mtofood","MTO Food"],["delivery","Delivery"],["coldgrab","Cold Grab"],["mtocoffee","MTO Coffee & Bev"],["bakery","Bakery"],["catering","Catering"],["midax","Midax"]];
+const KCOLS=["#2a78d6","#1baf7a","#eb6834","#4a3aa7","#eda100","#14867e","#d03b3b","#8a94a6"];
+/* helpers */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const sum=(a,k)=>a.reduce((x,r)=>x+r[k],0);
+const fmtM=v=>"$"+(v/1e6).toFixed(2)+"M",fmtK=v=>"$"+Math.round(v/1000).toLocaleString()+"K",fmtD=v=>"$"+Math.round(v).toLocaleString(),pct=v=>(v*100).toFixed(1)+"%";
+const NS="http://www.w3.org/2000/svg",el=(t,a)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);return n;};
+const tip=$("#tip");function sTip(e,h){tip.innerHTML=h;tip.style.opacity=1;mTip(e);}function mTip(e){let x=e.clientX+14,y=e.clientY+14;if(x+200>innerWidth)x=e.clientX-200;tip.style.left=x+"px";tip.style.top=y+"px";}function hTip(){tip.style.opacity=0;}
+document.addEventListener("scroll",hTip,true);
+/* store YTD/JUL aggregates */
+function agg(rows){const y={actual:sum(rows,"actual"),budget:sum(rows,"budget"),cstore:sum(rows,"cstore"),kitchen:sum(rows,"kitchen"),fountain:sum(rows,"fountain"),customers:sum(rows,"customers")};const j=rows[rows.length-1];return{y,j};}
+const AG={};STORES.forEach(s=>AG[s.id]=agg(MD[s.id]));
+const TOT={actual:0,budget:0,cstore:0,kitchen:0,fountain:0};STORES.forEach(s=>{["actual","budget","cstore","kitchen","fountain"].forEach(k=>TOT[k]+=AG[s.id].y[k]);});
+const avg=(k)=>STORES.reduce((a,s)=>a+AG[s.id].j[k],0)/4;
+
+/* ================= CHART PRIMITIVES ================= */
+function donut(host,items,fmt){
+ const W=300,H=200,cx=150,cy=98,r=76,ir=47,tot=items.reduce((a,d)=>a+d.value,0);
+ const svg=el("svg",{viewBox:`0 0 ${W} ${H}`});let ang=-Math.PI/2;
+ items.forEach(d=>{const f=d.value/tot,a2=ang+f*2*Math.PI,lg=f>.5?1:0,p=(rr,a)=>[cx+rr*Math.cos(a),cy+rr*Math.sin(a)];
+  const[x1,y1]=p(r,ang),[x2,y2]=p(r,a2),[x3,y3]=p(ir,a2),[x4,y4]=p(ir,ang);
+  const path=el("path",{d:`M${x1} ${y1}A${r} ${r} 0 ${lg} 1 ${x2} ${y2}L${x3} ${y3}A${ir} ${ir} 0 ${lg} 0 ${x4} ${y4}Z`,fill:d.hex,stroke:"var(--surface)","stroke-width":2});
+  path.style.cursor="pointer";path.onmousemove=e=>sTip(e,`<b>${d.label}</b> — ${fmt(d.value)} · ${(f*100).toFixed(1)}%`);path.onmouseleave=hTip;svg.appendChild(path);
+  if(f>=.07){const[lx,ly]=p((r+ir)/2,ang+f*Math.PI);const t=el("text",{x:lx,y:ly,"text-anchor":"middle","dominant-baseline":"middle",fill:"#fff","font-size":11,"font-weight":700});t.textContent=(f*100).toFixed(0)+"%";svg.appendChild(t);}
+  ang=a2;});
+ const c=el("text",{x:cx,y:cy-3,"text-anchor":"middle",fill:"var(--ink)","font-size":17,"font-weight":800});c.textContent=fmt(tot);svg.appendChild(c);
+ const c2=el("text",{x:cx,y:cy+13,"text-anchor":"middle",fill:"var(--muted)","font-size":10});c2.textContent="TOTAL";svg.appendChild(c2);
+ host.appendChild(svg);const lg2=document.createElement("div");lg2.className="legend";lg2.innerHTML=items.map(d=>`<span><i class="swatch" style="background:${d.hex}"></i>${d.label}</span>`).join("");host.appendChild(lg2);
+}
+function hbars(host,items,fmt,opt={}){
+ const rowH=28,W=560,labW=opt.labW||132,H=8+items.length*rowH,barW=W-labW-70,max=opt.max||Math.max(...items.map(d=>d.value));
+ const svg=el("svg",{viewBox:`0 0 ${W} ${H}`});
+ items.forEach((d,i)=>{const y=6+i*rowH;const tl=el("text",{x:labW-8,y:y+rowH/2,"text-anchor":"end","dominant-baseline":"middle",class:"glab"});tl.textContent=d.label;svg.appendChild(tl);
+  const w=Math.max(2,barW*(d.value/max)),col=d.hex||"var(--accent)";const rc=el("rect",{x:labW,y:y+5,width:w,height:rowH-13,rx:4,fill:col});rc.style.cursor="pointer";rc.onmousemove=e=>sTip(e,`<b>${d.label}</b> — ${(opt.tip||fmt)(d.value)}`);rc.onmouseleave=hTip;svg.appendChild(rc);
+  const tv=el("text",{x:labW+w+7,y:y+rowH/2,"dominant-baseline":"middle",class:"glab","font-weight":700});tv.textContent=fmt(d.value);svg.appendChild(tv);});
+ if(opt.target){const tx=labW+barW*(opt.target/max);svg.appendChild(el("line",{x1:tx,y1:2,x2:tx,y2:H-4,stroke:"var(--brand)","stroke-width":1.5,"stroke-dasharray":"4 3"}));const tt=el("text",{x:tx,y:-1,"text-anchor":"middle",fill:"var(--brand)","font-size":9.5,"font-weight":700});tt.textContent=opt.targetLab||"";svg.appendChild(tt);}
+ host.appendChild(svg);
+}
+function barLine(host,rows,opt={}){ // monthly actual bars + budget line, single $ axis
+ const W=900,H=260,L=56,R=16,Tp=16,B=30,pw=W-L-R,ph=H-Tp-B,max=opt.max||Math.ceil(Math.max(...rows.map(r=>Math.max(r.actual,r.budget)))/100000)*100000,step=max/5;
+ const svg=el("svg",{viewBox:`0 0 ${W} ${H}`});
+ for(let v=0;v<=max;v+=step){const y=Tp+ph*(1-v/max);svg.appendChild(el("line",{x1:L,y1:y,x2:W-R,y2:y,class:"gridline"}));const t=el("text",{x:L-8,y:y+4,"text-anchor":"end",class:"axis"});t.textContent="$"+Math.round(v/1000)+"K";svg.appendChild(t);}
+ const bw=pw/rows.length,bar=bw*.46;
+ rows.forEach((d,i)=>{const cx=L+bw*i+bw/2,h=ph*(d.actual/max),y=Tp+ph-h;const rc=el("rect",{x:cx-bar/2,y:y,width:bar,height:h,rx:4,fill:"var(--accent)"});rc.style.cursor="pointer";rc.onmousemove=e=>sTip(e,`<b>${d.m}</b> — Actual ${fmtK(d.actual)} · Budget ${fmtK(d.budget)} · <b>${((d.actual/d.budget)*100).toFixed(0)}%</b>`);rc.onmouseleave=hTip;svg.appendChild(rc);
+  const tx=el("text",{x:cx,y:H-12,"text-anchor":"middle",class:"axis"});tx.textContent=d.m;svg.appendChild(tx);});
+ // budget line
+ let pts=rows.map((d,i)=>[L+bw*i+bw/2,Tp+ph*(1-d.budget/max)]);
+ svg.appendChild(el("polyline",{points:pts.map(p=>p.join(",")).join(" "),fill:"none",stroke:"var(--brand)","stroke-width":2.2,"stroke-dasharray":"6 4"}));
+ host.appendChild(svg);const lg=document.createElement("div");lg.className="legend";lg.innerHTML=`<span><i class="swatch" style="background:var(--accent)"></i>Actual</span><span><i class="swatch" style="background:var(--brand)"></i>Budget</span>`;host.appendChild(lg);
+}
+function multiLine(host,series,fmt,opt={}){ // [{name,hex,vals:[]}]
+ const W=900,H=270,L=54,R=16,Tp=16,B=30,pw=W-L-R,ph=H-Tp-B;
+ const allv=series.flatMap(s=>s.vals);let mn=opt.min!=null?opt.min:Math.min(...allv),mx=opt.max!=null?opt.max:Math.max(...allv);const pad=(mx-mn)*.12||1;mn=opt.min!=null?opt.min:mn-pad;mx=opt.max!=null?opt.max:mx+pad;
+ const svg=el("svg",{viewBox:`0 0 ${W} ${H}`});
+ for(let g=0;g<=4;g++){const v=mn+(mx-mn)*g/4,y=Tp+ph*(1-(v-mn)/(mx-mn));svg.appendChild(el("line",{x1:L,y1:y,x2:W-R,y2:y,class:"gridline"}));const t=el("text",{x:L-8,y:y+4,"text-anchor":"end",class:"axis"});t.textContent=opt.yfmt?opt.yfmt(v):Math.round(v);svg.appendChild(t);}
+ MONS.forEach((m,i)=>{const x=L+pw*i/(MONS.length-1);const t=el("text",{x:x,y:H-12,"text-anchor":"middle",class:"axis"});t.textContent=m;svg.appendChild(t);});
+ series.forEach(s=>{const pts=s.vals.map((v,i)=>[L+pw*i/(MONS.length-1),Tp+ph*(1-(v-mn)/(mx-mn))]);
+  svg.appendChild(el("polyline",{points:pts.map(p=>p.join(",")).join(" "),fill:"none",stroke:s.hex,"stroke-width":2.4,"stroke-linejoin":"round","stroke-linecap":"round"}));
+  pts.forEach((p,i)=>{const dot=el("circle",{cx:p[0],cy:p[1],r:3.4,fill:s.hex,stroke:"var(--surface)","stroke-width":1.5});dot.style.cursor="pointer";dot.onmousemove=e=>sTip(e,`<b>${s.name}</b> · ${MONS[i]} — ${fmt(s.vals[i])}`);dot.onmouseleave=hTip;svg.appendChild(dot);});});
+ host.appendChild(svg);const lg=document.createElement("div");lg.className="legend";lg.innerHTML=series.map(s=>`<span><i class="swatch" style="background:${s.hex}"></i>${s.name}</span>`).join("");host.appendChild(lg);
+}
+function gauge(host,val,color){ // 0..1 ring
+ const W=200,H=130,cx=100,cy=110,r=76;const svg=el("svg",{viewBox:`0 0 ${W} ${H}`});
+ const arc=(a1,a2)=>{const p=a=>[cx+r*Math.cos(Math.PI-a*Math.PI),cy-r*Math.sin(Math.PI-a*Math.PI)];const[x1,y1]=p(a1),[x2,y2]=p(a2);return`M${x1} ${y1}A${r} ${r} 0 0 1 ${x2} ${y2}`;};
+ svg.appendChild(el("path",{d:arc(0,1),fill:"none",stroke:"var(--grid)","stroke-width":14,"stroke-linecap":"round"}));
+ svg.appendChild(el("path",{d:arc(0,Math.min(val,1)),fill:"none",stroke:color,"stroke-width":14,"stroke-linecap":"round"}));
+ const t=el("text",{x:cx,y:cy-8,"text-anchor":"middle",fill:"var(--ink)","font-size":30,"font-weight":800});t.textContent=(val*100).toFixed(1)+"%";svg.appendChild(t);
+ const t2=el("text",{x:cx,y:cy+10,"text-anchor":"middle",fill:"var(--muted)","font-size":10.5});t2.textContent="OF BUDGET (YTD)";svg.appendChild(t2);
+ host.appendChild(svg);
+}
+/* ================= BUILD PAGES ================= */
+function kpiRow(items){return `<div class="kpis">`+items.map(k=>`<div class="kpi"><div class="lab">${k.lab}</div><div class="val ${k.cls||''}">${k.val}</div><div class="note">${k.note||''}</div></div>`).join("")+`</div>`;}
+function statusOf(a){return a>=.8?{c:"g",t:"On track"}:a>=.6?{c:"w",t:"Watch"}:{c:"b",t:"Below plan"};}
+
+function buildOverview(){
+ const at=TOT.actual/TOT.budget;
+ let h=`<div class="phead"><h1>Executive Overview</h1><div class="badge">${MONS[CUR]} 2026 focus · YTD Jan–${LAST} · 4 stores</div></div>`;
+ const totFlags=Object.values(FLAGS).reduce((a,o)=>a+Object.keys(o).length,0);
+ if(totFlags) h+=`<div class="rbanner"><span class="ic">⚑</span><div><b>${totFlags} value(s) flagged for review</b> — ${MONS[MONS.length-1]} figures that moved more than 1.5% from the 3-month average. Open each store tab to recheck; approve to clear.</div></div>`;
+ h+=kpiRow([
+  {lab:"YTD Sales (Actual)",val:fmtM(TOT.actual),note:"C-Store + Kitchen + Fountain"},
+  {lab:"Budget Attainment",val:pct(at),cls:"accent",note:"all stores"},
+  {lab:"Variance vs Budget",val:"−"+fmtM(TOT.budget-TOT.actual),cls:"bad",note:pct((TOT.actual-TOT.budget)/TOT.budget)+" below plan"},
+  {lab:"Avg Kitchen INIR",val:pct(STORES.reduce((a,s)=>a+MD[s.id][CUR].inir,0)/4),cls:"accent",note:MONS[CUR]+", 4-store avg"},
+  {lab:"Avg SOS",val:(STORES.reduce((a,s)=>a+MD[s.id][CUR].sos,0)/4).toFixed(1)+" min",note:MONS[CUR]+" kitchen time"}
+ ]);
+ h+=`<h2 class="sec">Store Performance — Budget Attainment (YTD)</h2><div class="cards">`;
+ STORES.forEach(s=>{const a=AG[s.id].y.actual/AG[s.id].y.budget,st=statusOf(a);
+  h+=`<div class="card" style="--c:${s.hex}" data-go="${s.id}"><div class="nm">${s.name} <span class="id">${s.id}</span></div>
+   <div class="att" style="color:${s.hex}">${pct(a)}</div><div class="attlab">YTD Attainment <span class="pill ${st.c}">${st.t}</span></div>
+   <div class="bar"><i style="width:${Math.min(a*100,100)}%"></i></div>
+   <div class="mini"><span>YTD Sales</span><b>${fmtK(AG[s.id].y.actual)}</b></div>
+   <div class="mini"><span>Kitchen INIR (${MONS[CUR]})</span><b>${pct(MD[s.id][CUR].inir)}</b></div>
+   <div class="mini"><span>SOS (${MONS[CUR]})</span><b>${MD[s.id][CUR].sos.toFixed(1)} min</b></div></div>`;});
+ h+=`</div>`;
+ h+=`<h2 class="sec">Sales Analysis</h2><div class="grid2">
+   <div class="panel"><h3>YTD Sales by Store</h3><p class="cap">Share of total actual sales</p><div id="oDonut1"></div></div>
+   <div class="panel"><h3>Sales Composition</h3><p class="cap">C-Store · Kitchen · Fountain (YTD)</p><div id="oDonut2"></div></div>
+   <div class="panel full"><h3>Monthly Total Sales — Actual vs Budget</h3><p class="cap">All stores combined, Jan–${LAST}</p><div id="oMonthly"></div></div>
+   <div class="panel"><h3>Kitchen Product Mix (YTD)</h3><p class="cap">Kitchen sales by category</p><div id="oMix"></div></div>
+   <div class="panel"><h3>Budget Attainment by Store</h3><p class="cap">YTD · target 100%</p><div id="oAttain"></div></div></div>`;
+ h+=`<h2 class="sec">Key Insights</h2><div class="grid3" id="oIns"></div>`;
+ $("#pg-over").innerHTML=h;
+ donut($("#oDonut1"),STORES.map(s=>({label:s.name+" "+s.id,value:AG[s.id].y.actual,hex:s.hex})),fmtK);
+ donut($("#oDonut2"),[{label:"C-Store",value:TOT.cstore,hex:"#2a78d6"},{label:"Kitchen",value:TOT.kitchen,hex:"#1baf7a"},{label:"Fountain",value:TOT.fountain,hex:"#eda100"}],fmtK);
+ const mAll=MONS.map((m,i)=>({m,actual:STORES.reduce((a,s)=>a+MD[s.id][i].actual,0),budget:STORES.reduce((a,s)=>a+MD[s.id][i].budget,0)}));
+ barLine($("#oMonthly"),mAll,{max:1000000});
+ hbars($("#oMix"),MIX.map(d=>({label:d.label,value:d.value})),fmtK,{tip:fmtD,labW:118});
+ hbars($("#oAttain"),STORES.map(s=>({label:s.name+" "+s.id,value:AG[s.id].y.actual/AG[s.id].y.budget,hex:s.hex})),v=>pct(v),{max:1,target:1,targetLab:"100%",tip:pct,labW:104});
+ const compT=TOT.cstore+TOT.kitchen+TOT.fountain;
+ const mixT=MIX.reduce((a,d)=>a+d.value,0),top2=(MIX[0].value+MIX[1].value)/mixT;
+ // rank all four stores by YTD attainment so every store gets its own insight card
+ const ranked=STORES.map(s=>({s,att:AG[s.id].y.actual/AG[s.id].y.budget})).sort((x,y)=>y.att-x.att);
+ const rankTxt=["Best of the four","2nd of four","3rd of four","Lowest of the four"];
+ const storeCards=ranked.map((r,idx)=>{
+   const s=r.s, cls=idx===0?"good":(r.att<0.6?"warn":(idx===ranked.length-1?"warn":""));
+   const tag=idx===0?"leads the group":idx===ranked.length-1?"needs attention":"on plan";
+   return {cls,h:`${s.name} ${s.id} — ${pct(r.att)} of budget`,
+     p:`<b>${rankTxt[idx]}</b> YTD (${tag}). Kitchen INIR ${pct(MD[s.id][CUR].inir)} · SOS ${MD[s.id][CUR].sos.toFixed(1)} min · YTD kitchen ${fmtK(AG[s.id].y.kitchen)}.`};
+ });
+ $("#oIns").innerHTML=storeCards.concat([
+  {cls:"warn",h:"Every store is under budget",p:`Group at <b>${pct(at)}</b> YTD — a <b>${fmtM(TOT.budget-TOT.actual)}</b> gap. Budget reset or sales push needed.`},
+  {cls:"",h:"Kitchen mix concentrated",p:`MTO Food + Hot Grab = <b>${(top2*100).toFixed(0)}%</b> of kitchen sales · C-Store ${((TOT.cstore/compT)*100).toFixed(0)}% of total sales.`}
+ ]).map(i=>`<div class="ins ${i.cls}"><h4>${i.h}</h4><p>${i.p}</p></div>`).join("");
+}
+
+function buildStore(s){
+ const rows=MD[s.id], y=AG[s.id].y,j=rows[CUR],a=y.actual/y.budget,st=statusOf(a);
+ const fl=FLAGS[s.id]||{}, LI=MONS.length-1, flKeys=Object.keys(fl);
+ const FM=m=>fl[m]?`<span class="flag" title="${(fl[m]||'').replace(/"/g,'&quot;')}">⚑</span>`:"";
+ let h=`<div class="phead"><h1><span style="color:${s.hex}">${s.name}</span> · Site ${s.id}</h1><div class="badge">${MONS[CUR]} 2026 snapshot · YTD Jan–${LAST} trend</div></div>`;
+ h+= flKeys.length
+   ? `<div class="rbanner"><span class="ic">⚑</span><div><b>${flKeys.length} value(s) flagged for review</b> — ${MONS[LI]} figures that moved more than 1.5% from the 3-month average. Recheck against the source, then approve to clear.<ul>${flKeys.map(k=>`<li>${fl[k]}</li>`).join("")}</ul></div></div>`
+   : `<div class="rbanner ok"><span class="ic">✓</span><div><b>All values within trend</b> — no ${MONS[LI]} value deviates more than 1.5% from its 3-month average (or all flags approved).</div></div>`;
+ h+=kpiRow([
+  {lab:MONS[CUR]+" Sales",val:fmtK(j.actual),note:"C-Store + Kitchen + Fountain"},
+  {lab:MONS[CUR]+" Attainment",val:((j.actual/j.budget)*100).toFixed(0)+"%",cls:(j.actual/j.budget)>=.8?"good":(j.actual/j.budget)>=.6?"":"bad",note:"vs monthly budget"},
+  {lab:"Kitchen INIR ("+MONS[CUR]+")",val:pct(j.inir),cls:"accent",note:"net food margin"},
+  {lab:"GP % After Disc.",val:pct(j.gp_after),note:"before "+pct(j.gp_before)},
+  {lab:"SOS ("+MONS[CUR]+")",val:j.sos.toFixed(1)+" min",note:j.customers.toLocaleString()+" customers"}
+ ]);
+ h+=`<h2 class="sec">Budget &amp; Sales</h2><div class="grid2">
+   <div class="panel"><h3>YTD Budget Attainment <span class="pill ${st.c}" style="margin-left:6px">${st.t}</span></h3><p class="cap">YTD actual ${fmtK(y.actual)} of ${fmtK(y.budget)}</p><div id="sG"></div></div>
+   <div class="panel"><h3>Sales Composition (YTD)</h3><p class="cap">C-Store · Kitchen · Fountain</p><div id="sComp"></div></div>
+   <div class="panel full"><h3>Monthly Sales — Actual vs Budget</h3><p class="cap">Jan–${LAST} 2026</p><div id="sMon"></div></div></div>`;
+ h+=`<h2 class="sec">Food Margin &amp; Operations</h2><div class="grid2">
+   <div class="panel full"><h3>Margin Trend</h3><p class="cap">GP% before/after discount &amp; INIR net margin</p><div id="sMargin"></div></div>
+   <div class="panel"><h3>Kitchen Sales Trend</h3><p class="cap">Monthly kitchen $</p><div id="sKitch"></div></div>
+   <div class="panel"><h3>SOS &amp; Customers</h3><p class="cap">Speed of service (min) trend</p><div id="sSos"></div></div></div>`;
+ h+=`<h2 class="sec">Monthly Sales Summary</h2><div class="tblwrap"><table id="sTbl"></table></div>`;
+ // --- NEW: kitchen product mix ---
+ h+=`<h2 class="sec">Kitchen Product Mix</h2><div class="grid2">
+   <div class="panel"><h3>Product Mix (${MONS[CUR]})</h3><p class="cap">Kitchen sales by category</p><div id="sMix"></div></div>
+   <div class="panel"><h3>${MONS[CUR]} Cost &amp; Discount Buckets</h3><p class="cap">Dollars that erode kitchen margin</p><div id="sLeak"></div></div>
+   <div class="panel full"><h3>Monthly Kitchen Breakdown</h3><p class="cap">Jan–${LAST} product-mix sales ($)</p><div class="tblwrap"><table id="sKitTbl"></table></div></div></div>`;
+ // --- NEW: food-margin breakdown ---
+ h+=`<h2 class="sec">Food Margin Breakdown</h2><div class="tblwrap"><table id="sMarTbl"></table></div>`;
+ // --- NEW: customer counts ---
+ h+=`<h2 class="sec">Customer Counts</h2><div class="tblwrap"><table id="sCustTbl"></table></div>`;
+ // --- NEW: ending inventory snapshot ---
+ h+=`<h2 class="sec">Ending Inventory — latest snapshot</h2><p class="cap" style="margin:-6px 0 12px">Point-in-time ending inventory by department (${LAST} 2026). Variance = Targeted − Ending (negative = over target).</p><div class="tblwrap"><table id="sInvTbl"></table></div>`;
+ // --- NEW: price overrides (0008 only) ---
+ if(EX[s.id]&&EX[s.id].override){h+=`<h2 class="sec">Price Override Counts</h2><div class="grid2"><div class="panel full"><h3>Monthly Price Overrides</h3><p class="cap">Register price-override events, Jan–${LAST}</p><div id="sOvr"></div></div></div>`;}
+ const pg=$("#pg-"+s.id);pg.innerHTML=h;  // scope all lookups below to THIS store's page (ids repeat across store pages)
+ gauge(pg.querySelector("#sG"),a,s.hex);
+ donut(pg.querySelector("#sComp"),[{label:"C-Store",value:y.cstore,hex:"#2a78d6"},{label:"Kitchen",value:y.kitchen,hex:"#1baf7a"},{label:"Fountain",value:y.fountain,hex:"#eda100"}],fmtK);
+ barLine(pg.querySelector("#sMon"),rows,{});
+ multiLine(pg.querySelector("#sMargin"),[
+   {name:"GP% before",hex:"#2a78d6",vals:rows.map(r=>r.gp_before)},
+   {name:"GP% after disc.",hex:"#1baf7a",vals:rows.map(r=>r.gp_after)},
+   {name:"INIR net margin",hex:s.hex,vals:rows.map(r=>r.inir)}
+ ],v=>pct(v),{yfmt:v=>(v*100).toFixed(0)+"%"});
+ multiLine(pg.querySelector("#sKitch"),[{name:"Kitchen $",hex:s.hex,vals:rows.map(r=>r.kitchen)}],fmtK,{yfmt:v=>"$"+Math.round(v/1000)+"K",min:0});
+ multiLine(pg.querySelector("#sSos"),[{name:"SOS (min)",hex:"#eda100",vals:rows.map(r=>r.sos)}],v=>v.toFixed(1)+" min",{});
+ // sales summary table
+ let th=`<thead><tr><th>Month</th><th>Actual</th><th>Budget</th><th>Attain</th><th>C-Store</th><th>Kitchen</th><th>Fountain</th><th>INIR</th><th>GP After</th><th>SOS</th></tr></thead><tbody>`;
+ rows.forEach(r=>{const at=r.actual/r.budget;const F=r.m===MONS[LI];const C=(m,inner)=>`<td${F&&fl[m]?' class="flagged"':''}>${inner}${F?FM(m):''}</td>`;
+   th+=`<tr><td>${r.m}</td>${C('actual',fmtD(r.actual))}<td>${fmtD(r.budget)}</td><td class="${at>=.8?'pos':at<.6?'neg':''}">${(at*100).toFixed(0)}%</td>${C('cstore',fmtD(r.cstore))}${C('kitchen',fmtD(r.kitchen))}${C('fountain',fmtD(r.fountain))}${C('inir',pct(r.inir))}${C('gp_after',pct(r.gp_after))}${C('sos',r.sos.toFixed(1))}</tr>`;});
+ th+=`<tr class="total"><td>YTD</td><td>${fmtD(y.actual)}</td><td>${fmtD(y.budget)}</td><td>${pct(a)}</td><td>${fmtD(y.cstore)}</td><td>${fmtD(y.kitchen)}</td><td>${fmtD(y.fountain)}</td><td>${pct(rows.reduce((x,r)=>x+r.inir,0)/7)}</td><td>${pct(rows.reduce((x,r)=>x+r.gp_after,0)/7)}</td><td>${(rows.reduce((x,r)=>x+r.sos,0)/7).toFixed(1)}</td></tr></tbody>`;
+ pg.querySelector("#sTbl").innerHTML=th;
+ // kitchen product-mix donut (July) + leak buckets
+ const mixItems=KCATS.map(([k,lab],i)=>({label:lab,value:j[k],hex:KCOLS[i]})).filter(d=>d.value>0);
+ donut(pg.querySelector("#sMix"),mixItems,fmtD);
+ const leakHex=["#eb6834","#d03b3b","#eda100","#4a3aa7","#8a94a6"];
+ hbars(pg.querySelector("#sLeak"),[
+   {label:"Discount $",value:j.disc_d},{label:"Wastage $",value:j.wastage_d},{label:"Sampling $",value:j.sampling_d},{label:"Spoilage $",value:j.spoilage_d},{label:"Logo Cups $",value:j.logo_d}
+ ].map((d,i)=>({...d,hex:leakHex[i]})),fmtD,{tip:fmtD,labW:96});
+ // monthly kitchen breakdown table
+ let kt=`<thead><tr><th>Month</th><th>Hot Grab</th><th>Cold Grab</th><th>Bakery</th><th>MTO Food</th><th>MTO Coffee</th><th>Delivery</th><th>Catering</th><th>Midax</th><th>Total</th></tr></thead><tbody>`;
+ const ktot={hotgrab:0,coldgrab:0,bakery:0,mtofood:0,mtocoffee:0,delivery:0,catering:0,midax:0};
+ rows.forEach(r=>{const t=r.hotgrab+r.coldgrab+r.bakery+r.mtofood+r.mtocoffee+r.delivery+r.catering+r.midax;for(const k in ktot)ktot[k]+=r[k];
+   kt+=`<tr><td>${r.m}</td><td>${fmtD(r.hotgrab)}</td><td>${fmtD(r.coldgrab)}</td><td>${fmtD(r.bakery)}</td><td>${fmtD(r.mtofood)}</td><td>${fmtD(r.mtocoffee)}</td><td>${fmtD(r.delivery)}</td><td>${fmtD(r.catering)}</td><td>${fmtD(r.midax)}</td><td>${fmtD(t)}</td></tr>`;});
+ const ktT=Object.values(ktot).reduce((x,v)=>x+v,0);
+ kt+=`<tr class="total"><td>YTD</td><td>${fmtD(ktot.hotgrab)}</td><td>${fmtD(ktot.coldgrab)}</td><td>${fmtD(ktot.bakery)}</td><td>${fmtD(ktot.mtofood)}</td><td>${fmtD(ktot.mtocoffee)}</td><td>${fmtD(ktot.delivery)}</td><td>${fmtD(ktot.catering)}</td><td>${fmtD(ktot.midax)}</td><td>${fmtD(ktT)}</td></tr></tbody>`;
+ pg.querySelector("#sKitTbl").innerHTML=kt;
+ // monthly margin breakdown table
+ let mt=`<thead><tr><th>Month</th><th>GP Before</th><th>Disc %</th><th>Disc $</th><th>Wastage $</th><th>Sampling $</th><th>Spoilage $</th><th>Logo $</th><th>INIR</th><th>Shrink $</th><th>Shrink %</th></tr></thead><tbody>`;
+ rows.forEach(r=>{const F=r.m===MONS[LI];const C=(m,inner)=>`<td${F&&fl[m]?' class="flagged"':''}>${inner}${F?FM(m):''}</td>`;
+   mt+=`<tr><td>${r.m}</td>${C('gp_before',pct(r.gp_before))}<td>${pct(r.disc_pct)}</td><td>${fmtD(r.disc_d)}</td>${C('wastage',fmtD(r.wastage_d))}${C('sampling',fmtD(r.sampling_d))}<td>${fmtD(r.spoilage_d)}</td>${C('logo',fmtD(r.logo_d))}${C('inir',pct(r.inir))}<td class="${r.shrink_d<0?'neg':'pos'}">${fmtD(r.shrink_d)}</td><td class="${r.shrink<0?'neg':'pos'}">${pct(r.shrink)}</td></tr>`;});
+ pg.querySelector("#sMarTbl").innerHTML=mt+`</tbody>`;
+ // customer counts table
+ let ct=`<thead><tr><th>Month</th><th>Total Customers</th><th>Crind</th><th>DR MOP</th><th>Avg Cust / Day</th><th>Avg Sales / Cust</th></tr></thead><tbody>`;
+ rows.forEach(r=>{const F=r.m===MONS[LI];const C=(m,inner)=>`<td${F&&fl[m]?' class="flagged"':''}>${inner}${F?FM(m):''}</td>`;
+   ct+=`<tr><td>${r.m}</td>${C('customers',r.customers.toLocaleString())}<td>${r.crind.toLocaleString()}</td><td>${r.drmop.toLocaleString()}</td><td>${r.avgcust.toLocaleString()}</td><td>$${r.avgspc.toFixed(2)}</td></tr>`;});
+ pg.querySelector("#sCustTbl").innerHTML=ct+`</tbody>`;
+ // ending inventory snapshot table
+ const inv=(EX[s.id]&&EX[s.id].inv)||[];
+ let it=`<thead><tr><th>Department</th><th>Targeted</th><th>Ending Inv</th><th>Variance</th></tr></thead><tbody>`;
+ inv.forEach(d=>{const gt=/grand total/i.test(d.dept);it+=`<tr class="${gt?'total':''}"><td>${d.dept}</td><td>${fmtD(d.targeted)}</td><td>${fmtD(d.ending)}</td><td class="${gt?'':(d.var<0?'neg':'pos')}">${fmtD(d.var)}</td></tr>`;});
+ pg.querySelector("#sInvTbl").innerHTML=it+`</tbody>`;
+ // price overrides (0008)
+ if(EX[s.id]&&EX[s.id].override){hbars(pg.querySelector("#sOvr"),EX[s.id].override.map((v,i)=>({label:MONS[i],value:v,hex:s.hex})),v=>v+"",{tip:v=>v+" overrides",labW:56});}
+}
+
+function buildTrends(){
+ let h=`<div class="phead"><h1>Trends &amp; Comparison</h1><div class="badge">All stores · Jan–${LAST} 2026</div></div>`;
+ h+=`<div class="grid2">
+  <div class="panel full"><h3>Total Sales by Store</h3><p class="cap">Monthly actual sales, all stores</p><div id="tSales"></div></div>
+  <div class="panel full"><h3>Kitchen INIR Margin</h3><p class="cap">Net food margin trend by store</p><div id="tInir"></div></div>
+  <div class="panel"><h3>Attainment vs Budget</h3><p class="cap">Monthly actual ÷ budget</p><div id="tAtt"></div></div>
+  <div class="panel"><h3>Speed of Service</h3><p class="cap">Kitchen product time (min)</p><div id="tSos"></div></div></div>`;
+ $("#pg-trends").innerHTML=h;
+ multiLine($("#tSales"),STORES.map(s=>({name:s.name,hex:s.hex,vals:MD[s.id].map(r=>r.actual)})),fmtK,{yfmt:v=>"$"+Math.round(v/1000)+"K",min:0});
+ multiLine($("#tInir"),STORES.map(s=>({name:s.name,hex:s.hex,vals:MD[s.id].map(r=>r.inir)})),pct,{yfmt:v=>(v*100).toFixed(0)+"%"});
+ multiLine($("#tAtt"),STORES.map(s=>({name:s.name,hex:s.hex,vals:MD[s.id].map(r=>r.actual/r.budget)})),pct,{yfmt:v=>(v*100).toFixed(0)+"%"});
+ multiLine($("#tSos"),STORES.map(s=>({name:s.name,hex:s.hex,vals:MD[s.id].map(r=>r.sos)})),v=>v.toFixed(1),{yfmt:v=>v.toFixed(0)});
+}
+
+function buildData(){
+ let h=`<div class="phead"><h1>Data Table</h1><div class="badge">YTD summary + full monthly data · all stores</div></div>`;
+ h+=`<h2 class="sec">YTD Summary (${MONS[CUR]} focus)</h2><div class="tblwrap"><table><thead><tr><th>Store</th><th>YTD Actual</th><th>YTD Budget</th><th>Attain %</th><th>${MONS[CUR]} Actual</th><th>C-Store</th><th>Kitchen</th><th>Fountain</th><th>INIR %</th><th>SOS</th></tr></thead><tbody>`;
+ STORES.forEach(s=>{const y=AG[s.id].y,a=y.actual/y.budget,j=MD[s.id][CUR];h+=`<tr><td><span class="dot" style="background:${s.hex}"></span>${s.name} ${s.id}</td><td>${fmtD(y.actual)}</td><td>${fmtD(y.budget)}</td><td class="${a>=.8?'pos':a<.6?'neg':''}">${pct(a)}</td><td>${fmtD(j.actual)}</td><td>${fmtD(y.cstore)}</td><td>${fmtD(y.kitchen)}</td><td>${fmtD(y.fountain)}</td><td>${pct(j.inir)}</td><td>${j.sos.toFixed(2)}</td></tr>`;});
+ const at=TOT.actual/TOT.budget;
+ h+=`<tr class="total"><td>ALL STORES</td><td>${fmtD(TOT.actual)}</td><td>${fmtD(TOT.budget)}</td><td>${pct(at)}</td><td>${fmtD(STORES.reduce((x,s)=>x+MD[s.id][CUR].actual,0))}</td><td>${fmtD(TOT.cstore)}</td><td>${fmtD(TOT.kitchen)}</td><td>${fmtD(TOT.fountain)}</td><td>${pct(STORES.reduce((x,s)=>x+MD[s.id][CUR].inir,0)/4)}</td><td>${(STORES.reduce((x,s)=>x+MD[s.id][CUR].sos,0)/4).toFixed(2)}</td></tr></tbody></table></div>`;
+ // full monthly grid: every store x every month
+ h+=`<h2 class="sec">Full Monthly Data (Jan–${LAST})</h2><div class="tblwrap"><table><thead><tr><th>Store</th><th>Month</th><th>Actual</th><th>Budget</th><th>Attain</th><th>C-Store</th><th>Kitchen</th><th>Fountain</th><th>INIR</th><th>GP After</th><th>Shrink %</th><th>SOS</th><th>Customers</th></tr></thead><tbody>`;
+ STORES.forEach(s=>{MD[s.id].forEach((r,i)=>{const at2=r.actual/r.budget;h+=`<tr${i===CUR?' style="background:color-mix(in srgb,var(--accent) 14%,transparent)"':''}><td><span class="dot" style="background:${s.hex}"></span>${s.name} ${s.id}</td><td>${r.m}</td><td>${fmtD(r.actual)}</td><td>${fmtD(r.budget)}</td><td class="${at2>=.8?'pos':at2<.6?'neg':''}">${(at2*100).toFixed(0)}%</td><td>${fmtD(r.cstore)}</td><td>${fmtD(r.kitchen)}</td><td>${fmtD(r.fountain)}</td><td>${pct(r.inir)}</td><td>${pct(r.gp_after)}</td><td class="${r.shrink<0?'neg':'pos'}">${pct(r.shrink)}</td><td>${r.sos.toFixed(1)}</td><td>${r.customers.toLocaleString()}</td></tr>`;});});
+ h+=`</tbody></table></div>`;
+ h+=`<footer><span>Data verified against source files (Weighted Average, Retail Dept Summary, Cost INIR/PDI, Hourly Sales, Customer Counts, Speed of Service).</span><span>Sugarland Petroleum — Confidential</span></footer>`;
+ $("#pg-data").innerHTML=h;
+}
+
+/* ================= ROUTER ================= */
+const PAGES=[{id:"over",label:"Overview"}].concat(STORES.map(s=>({id:s.id,label:s.name+" "+s.id}))).concat([{id:"trends",label:"Trends"},{id:"data",label:"Data"}]);
+$("#tabs").innerHTML=PAGES.map(p=>`<button data-tab="${p.id}">${p.label}</button>`).join("");
+PAGES.forEach(p=>{const d=document.createElement("div");d.className="page";d.id="pg-"+p.id;$("#app").appendChild(d);});
+let built={},curTab="over";
+function show(id){
+ if(!PAGES.some(p=>p.id===id))id="over";
+ curTab=id;
+ $$("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===id));
+ $$(".page").forEach(p=>p.classList.remove("on"));$("#pg-"+id).classList.add("on");
+ if(!built[id]){built[id]=1;if(id==="over")buildOverview();else if(id==="trends")buildTrends();else if(id==="data")buildData();else buildStore(STORES.find(s=>s.id===id));}
+ if(location.hash.slice(1)!==id)history.replaceState(null,"","#"+id);
+ window.scrollTo({top:0});
+}
+addEventListener("hashchange",()=>show(location.hash.slice(1).replace("|pp","")));
+if(location.hash.includes("|pp"))document.body.classList.add("pp");
+$("#tabs").onclick=e=>{const b=e.target.closest("button");if(b)show(b.dataset.tab);};
+$("#app").onclick=e=>{const c=e.target.closest("[data-go]");if(c)show(c.dataset.go);};
+// month selector: pick which month is the "focus" snapshot (KPIs, donuts, buckets). Tables/trends always show Jan–latest.
+$("#month").innerHTML=MONS.map((m,i)=>`<option value="${i}">${m} 2026</option>`).join("");
+$("#month").value=CUR;
+$("#month").onchange=e=>{CUR=+e.target.value;built={};show(curTab);};  // rebuild current tab for the new focus month
+$("#theme").onchange=e=>document.body.dataset.theme=e.target.value;
+$("#mode").onclick=()=>document.body.classList.toggle("dark");
+$("#print").onclick=()=>window.print();  // prints the current tab only — compact 1-2 pages for directors
+$("#csv").onclick=()=>{
+ let rows=[["Store","Month","Actual","Budget","Attain%","C-Store","Kitchen","Fountain","INIR%","GP_after%","Shrink%","SOS_min","Customers"]];
+ STORES.forEach(s=>MD[s.id].forEach(r=>rows.push([s.name+" "+s.id,r.m,r.actual,r.budget,((r.actual/r.budget)*100).toFixed(1),r.cstore,r.kitchen,r.fountain,(r.inir*100).toFixed(1),(r.gp_after*100).toFixed(1),(r.shrink*100).toFixed(1),r.sos,r.customers])));
+ const csv=rows.map(r=>r.join(",")).join("\n");const b=new Blob([csv],{type:"text/csv"});const u=URL.createObjectURL(b);
+ const a=document.createElement("a");a.href=u;a.download="Food_Sales_Budget_Variance_Data_2026.csv";a.click();URL.revokeObjectURL(u);
+};
+show((location.hash.slice(1).replace("|pp",""))||"over");
+</script>
+</body>
+</html>
