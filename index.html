@@ -114,6 +114,19 @@
   #tip{position:fixed;pointer-events:none;background:var(--brand);color:#fff;padding:8px 11px;border-radius:8px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.3);opacity:0;transition:opacity .1s;z-index:99;white-space:nowrap}
   #tip b{color:#fff;opacity:.85}
   @media (max-width:920px){.kpis{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:repeat(2,1fr)}.grid2,.grid3{grid-template-columns:1fr}}
+  /* mobile header: let the bar wrap so ALL tabs are reachable (fix: tabs cut off past Overview on phones) */
+  @media (max-width:760px){
+    html,body{overflow-x:hidden}
+    .topbar .wrap{flex-wrap:wrap;height:auto;padding:10px 14px;gap:8px}
+    .logo{order:1}
+    .ctrls{order:2;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+    nav.tabs{order:3;flex-basis:100%;margin-left:0;justify-content:center;flex-wrap:wrap;gap:6px}
+    nav.tabs button{flex:0 0 auto}
+    .byline{order:4;flex-basis:100%;text-align:center;margin:2px 0 0}
+    .kpis,.cards,.grid2,.grid3{grid-template-columns:minmax(0,1fr)}
+    .kpi,.card,.panel,.ins,.mini,.tblwrap{min-width:0}
+    .phead h1{font-size:21px}
+  }
   /* print-preview class mirrors @media print for on-screen verification */
   body.pp{background:#fff;font-size:10.3px;width:1040px;margin:0 auto}
   body.pp .no-print{display:none!important}
