@@ -22,7 +22,7 @@ Woodridge 0028, Dilley 0062).
 | Path | Purpose |
 |------|---------|
 | `index.html` | The complete dashboard (this is the whole app). |
-| `02_Excel_Report/` | The source workbook backing the "Download Excel" button. |
+| `2. RUN/` | The master workbook backing the "Download Excel" button. |
 | `vercel.json` | Static hosting config. |
 
 ## Run locally
