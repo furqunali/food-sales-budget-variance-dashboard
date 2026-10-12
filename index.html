@@ -19,14 +19,15 @@ for(j=0;j<w.length;j+=16){var a=h.slice(0),W=w.slice(j,j+16);for(i=0;i<64;i++){i
 var t1=a[7]+(r(6,a[4])^r(11,a[4])^r(25,a[4]))+((a[4]&a[5])^(~a[4]&a[6]))+k[i]+W[i],t2=(r(2,a[0])^r(13,a[0])^r(22,a[0]))+((a[0]&a[1])^(a[0]&a[2])^(a[1]&a[2]));a=[(t1+t2)|0].concat(a);a[4]=(a[4]+t1)|0;a.length=8}
 for(i=0;i<8;i++)h[i]=(h[i]+a[i])|0}var o="";for(i=0;i<8;i++)o+=("0000000"+(h[i]>>>0).toString(16)).slice(-8);return o}
 function digest(s){try{if(window.crypto&&crypto.subtle&&window.TextEncoder)return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(hex)}catch(e){}return Promise.resolve(sha(s))}
-try{if(sessionStorage.getItem(K)===H)return}catch(e){}if((";"+document.cookie).indexOf(";"+K+"="+H)>=0||(document.cookie).indexOf(" "+K+"="+H)>=0)return;
+/* asked on EVERY page open - nothing is remembered */try{sessionStorage.removeItem(K);document.cookie=K+"=; path=/; max-age=0"}catch(e){}window.addEventListener("pageshow",function(e){if(e.persisted)location.reload()});
 document.documentElement.classList.add("aidgate-on");
 function mount(){if(document.getElementById("aidgate"))return;var g=document.createElement("div");g.id="aidgate";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");
 g.innerHTML='<form class="box" autocomplete="off"><div class="lk"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div><h2>Protected page</h2><p>Enter the access code to continue.</p><input type="password" aria-label="Access code" placeholder="Access code"><button type="submit">Unlock</button><div class="err" aria-live="polite"></div></form>';
 (document.body||document.documentElement).appendChild(g);var f=g.querySelector("form"),inp=g.querySelector("input"),er=g.querySelector(".err");setTimeout(function(){inp.focus()},50);
-f.onsubmit=function(e){e.preventDefault();digest(inp.value).then(function(d){if(d===H){try{sessionStorage.setItem(K,H)}catch(x){}try{document.cookie=K+"="+H+"; path=/; SameSite=Lax"+(location.protocol==="https:"?"; Secure":"")}catch(x){}g.remove();document.documentElement.classList.remove("aidgate-on");window.dispatchEvent(new Event("resize"))}else{er.textContent="Incorrect code. Please try again.";inp.select()}})}}
+f.onsubmit=function(e){e.preventDefault();digest(inp.value).then(function(d){if(d===H){g.remove();document.documentElement.classList.remove("aidgate-on");window.dispatchEvent(new Event("resize"))}else{er.textContent="Incorrect code. Please try again.";inp.select()}})}}
 if(document.body)mount();else document.addEventListener("DOMContentLoaded",mount)})();</script>
 <!--/AIDGATE-->
+
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
