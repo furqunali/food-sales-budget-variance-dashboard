@@ -1,6 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!--AIDGATE-->
+<style id="aidgate-css">#aidgate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 500px at 50% 0%,#14304D,transparent 60%),linear-gradient(160deg,#0B0F17,#05070B);font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:#E6EDF5}
+#aidgate .box{width:min(360px,calc(100vw - 32px));background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center}
+#aidgate .lk{width:46px;height:46px;margin:0 auto 12px;border-radius:12px;display:grid;place-items:center;background:rgba(34,211,197,.12);color:#22D3C5}
+#aidgate h2{margin:0 0 4px;font-size:20px;font-weight:700}#aidgate p{margin:0 0 18px;font-size:13.5px;color:#9FB0C3}
+#aidgate input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid #2A3A4E;background:#0E1520;color:#fff;font-size:15px;outline:none}
+#aidgate input:focus{border-color:#22D3C5;box-shadow:0 0 0 3px rgba(34,211,197,.2)}
+#aidgate button{width:100%;margin-top:12px;padding:11px;border:0;border-radius:10px;background:linear-gradient(135deg,#22D3C5,#1FB6E8);color:#04121A;font-weight:700;font-size:15px;cursor:pointer}
+#aidgate .err{min-height:18px;margin-top:10px;font-size:13px;color:#FF7A7A}
+html.aidgate-on,html.aidgate-on body{overflow:hidden!important}@media print{#aidgate{display:none}}</style>
+<script id="aidgate-js">(function(){var H="756287969b58e89a1820111d05dfcc1c291883ec2653b29998d1f36f44ae3eeb",K="aidgate_ok";
+function hex(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return("0"+x.toString(16)).slice(-2)}).join("")}
+function sha(s){/* small SHA-256 for pages opened where crypto.subtle is not available */function r(n,x){return(x>>>n)|(x<<(32-n))}var k=[],h=[],i,j,p=2;for(i=0;i<64;p++){for(j=2;j*j<=p&&p%j;j++);if(j*j>p){if(i<8)h[i]=(Math.pow(p,.5)*4294967296)|0;k[i++]=(Math.pow(p,1/3)*4294967296)|0}}
+var b=unescape(encodeURIComponent(s)),l=b.length*8,w=[];b+="\x80";while(b.length%64-56)b+="\x00";for(i=0;i<b.length;i++)w[i>>2]|=b.charCodeAt(i)<<((3-i)%4)*8;w[w.length]=(l/4294967296)|0;w[w.length]=l;
+for(j=0;j<w.length;j+=16){var a=h.slice(0),W=w.slice(j,j+16);for(i=0;i<64;i++){if(i>15){var x=W[i-15],y=W[i-2];W[i]=(W[i-16]+(r(7,x)^r(18,x)^(x>>>3))+W[i-7]+(r(17,y)^r(19,y)^(y>>>10)))|0}
+var t1=a[7]+(r(6,a[4])^r(11,a[4])^r(25,a[4]))+((a[4]&a[5])^(~a[4]&a[6]))+k[i]+W[i],t2=(r(2,a[0])^r(13,a[0])^r(22,a[0]))+((a[0]&a[1])^(a[0]&a[2])^(a[1]&a[2]));a=[(t1+t2)|0].concat(a);a[4]=(a[4]+t1)|0;a.length=8}
+for(i=0;i<8;i++)h[i]=(h[i]+a[i])|0}var o="";for(i=0;i<8;i++)o+=("0000000"+(h[i]>>>0).toString(16)).slice(-8);return o}
+function digest(s){try{if(window.crypto&&crypto.subtle&&window.TextEncoder)return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(hex)}catch(e){}return Promise.resolve(sha(s))}
+try{if(sessionStorage.getItem(K)===H)return}catch(e){}
+document.documentElement.classList.add("aidgate-on");
+function mount(){if(document.getElementById("aidgate"))return;var g=document.createElement("div");g.id="aidgate";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");
+g.innerHTML='<form class="box" autocomplete="off"><div class="lk"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div><h2>Protected page</h2><p>Enter the access code to continue.</p><input type="password" aria-label="Access code" placeholder="Access code"><button type="submit">Unlock</button><div class="err" aria-live="polite"></div></form>';
+(document.body||document.documentElement).appendChild(g);var f=g.querySelector("form"),inp=g.querySelector("input"),er=g.querySelector(".err");setTimeout(function(){inp.focus()},50);
+f.onsubmit=function(e){e.preventDefault();digest(inp.value).then(function(d){if(d===H){try{sessionStorage.setItem(K,H)}catch(x){}g.remove();document.documentElement.classList.remove("aidgate-on");window.dispatchEvent(new Event("resize"))}else{er.textContent="Incorrect code. Please try again.";inp.select()}})}}
+if(document.body)mount();else document.addEventListener("DOMContentLoaded",mount)})();</script>
+<!--/AIDGATE-->
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Food &amp; Sales Budget Variance — Executive Dashboard 2026</title>
